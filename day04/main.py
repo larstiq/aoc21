@@ -7,7 +7,7 @@ with open("input") as puzzle_input:
     draws = map(int, puzzle_input.readline().split(","))
 
     df = pd.read_csv(puzzle_input, delim_whitespace=True, header=None)
-    boardslist = [df.iloc[ix:ix + 5] for ix in range(0, len(df), 5)]
+    boardslist = [df.iloc[ix:ix + 5].copy() for ix in range(0, len(df), 5)]
     boards = {ix: board for ix, board in enumerate(boardslist)}
 
     
@@ -22,4 +22,4 @@ for ball in draws:
             board.dropna(how='all', axis=1).shape != board.shape):
             wins[ix] = (len(wins), ball, board, board.sum().sum() * ball)
 
-
+print(wins)

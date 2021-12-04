@@ -6,6 +6,5 @@ with open("input") as puzzlein:
     measures = list(map(int, puzzlein))
 
 s = pd.Series(measures)
-print(s.diff()
-
-print(s.rolling(window=3).diff())
+print(sum(s.diff() > 0))
+print(sum(s.rolling(window=3).sum().diff() > 0))
