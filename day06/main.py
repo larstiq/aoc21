@@ -2,10 +2,10 @@
 
 import pandas as pd
 import numpy as np
+import time
 
 with open("input") as puzzle_input:
     fishes = pd.read_csv(puzzle_input, header=None).transpose()
-    fish_generations = fishes.value_counts()
 
 # Each time step fish in generation N move to generation N-1 except for
 # generation 0 which split into 6 and 8.
@@ -23,37 +23,39 @@ transition = pd.DataFrame([
     (1, 0, 0, 0, 0, 0, 0, 0, 0),
 ])
 
+# Or more compactly with numpy
+T = np.roll(np.identity(9, dtype=int), -1, axis=0)
+T[6, 0] = 1
+assert pd.DataFrame(T).equals(transition)
+
 # Convert the initial input of individual fishes into a generation count
-fish_gen_vector = []
-for ix in range(9):
-    if ix in fish_generations:
-        fish_gen_vector.append(fish_generations.loc[ix].sum())
-    else:
-        fish_gen_vector.append(0)
-fish_gen_vector = pd.Series(fish_gen_vector)
-print(fish_gen_vector)
+# Since .value_counts() gives a multi-index and not every generation might be
+# represented, do a .get(generation 0) to default
+fish_generations = pd.Series(fishes.value_counts().get(generation, 0) for generation in range(9))
 
 
 # Visually confirm the result are correct, fishes should "swim left"
-def simulate():
-    fish_gen_vectors = [fish_gen_vector]
-    for day in range(256):
-        old = fish_gen_vectors[-1]
-        fish_gen_vectors.append(transition.dot(old))
-        new = fish_gen_vectors[-1]
+def simulate(days):
+    new = fish_generations
+    simulated = [new]
+    for day in range(days):
+        new, old = transition.dot(new), new
+        simulated.append(new)
 
         print(f"day {day}")
         print(old.values)
         print(new.values)
         print(new.sum())
-    return fish_gen_vectors
+    return simulated
 
 # Actual math optimized solution is to take the `dayth` power of the transition
 # matrix and apply that to the initial fish generation vector once.
 def matrix_power():
-    endtimes = np.linalg.matrix_power(transition, 256).dot(fish_gen_vector)
+    P = np.linalg.matrix_power(transition, 256)
+    endtimes = P.dot(fish_generations)
     print(endtimes)
     print(endtimes.sum().sum())
+    return P, endtimes
 
-simulate()
+#simulate()
 matrix_power()
