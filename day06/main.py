@@ -11,17 +11,19 @@ with open("input") as puzzle_input:
 # generation 0 which split into 6 and 8.
 #
 # That's expressed by the following generation transition matrix:
-transition = pd.DataFrame([
-    (0, 1, 0, 0, 0, 0, 0, 0, 0),
-    (0, 0, 1, 0, 0, 0, 0, 0, 0),
-    (0, 0, 0, 1, 0, 0, 0, 0, 0),
-    (0, 0, 0, 0, 1, 0, 0, 0, 0),
-    (0, 0, 0, 0, 0, 1, 0, 0, 0),
-    (0, 0, 0, 0, 0, 0, 1, 0, 0),
-    (1, 0, 0, 0, 0, 0, 0, 1, 0),
-    (0, 0, 0, 0, 0, 0, 0, 0, 1),
-    (1, 0, 0, 0, 0, 0, 0, 0, 0),
-])
+transition = pd.DataFrame(
+    [
+        (0, 1, 0, 0, 0, 0, 0, 0, 0),
+        (0, 0, 1, 0, 0, 0, 0, 0, 0),
+        (0, 0, 0, 1, 0, 0, 0, 0, 0),
+        (0, 0, 0, 0, 1, 0, 0, 0, 0),
+        (0, 0, 0, 0, 0, 1, 0, 0, 0),
+        (0, 0, 0, 0, 0, 0, 1, 0, 0),
+        (1, 0, 0, 0, 0, 0, 0, 1, 0),
+        (0, 0, 0, 0, 0, 0, 0, 0, 1),
+        (1, 0, 0, 0, 0, 0, 0, 0, 0),
+    ]
+)
 
 # Or more compactly with numpy
 T = np.roll(np.identity(9, dtype=int), -1, axis=0)
@@ -31,7 +33,9 @@ assert pd.DataFrame(T).equals(transition)
 # Convert the initial input of individual fishes into a generation count
 # Since .value_counts() gives a multi-index and not every generation might be
 # represented, do a .get(generation 0) to default
-fish_generations = pd.Series(fishes.value_counts().get(generation, 0) for generation in range(9))
+fish_generations = pd.Series(
+    fishes.value_counts().get(generation, 0) for generation in range(9)
+)
 
 
 # Visually confirm the result are correct, fishes should "swim left"
@@ -48,6 +52,7 @@ def simulate(days):
         print(new.sum())
     return simulated
 
+
 # Actual math optimized solution is to take the `dayth` power of the transition
 # matrix and apply that to the initial fish generation vector once.
 def matrix_power():
@@ -57,5 +62,6 @@ def matrix_power():
     print(endtimes.sum().sum())
     return P, endtimes
 
-#simulate()
+
+# simulate()
 matrix_power()
