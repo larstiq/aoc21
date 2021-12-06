@@ -42,15 +42,12 @@ def simulate():
         print(old.values)
         print(new.values)
         print(new.sum())
+    return fish_gen_vectors
 
 def matrix_power():
-
-    P = transition
-    for day in range(255):
-        P = P.dot(transition)
-
-    print(P.dot(fish_gen_vector).sum().sum())
-
+    endtimes = np.linalg.matrix_power(transition, 256).dot(fish_gen_vector)
+    print(endtimes)
+    print(endtimes.sum().sum())
 
 simulate()
 matrix_power()
