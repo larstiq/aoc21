@@ -59,7 +59,7 @@ def matrix_power():
     P = np.linalg.matrix_power(transition, 256)
     endtimes = P.dot(fish_generations)
     print(endtimes)
-    print(endtimes.sum().sum())
+    print(endtimes.sum())
     return P, endtimes
 
 

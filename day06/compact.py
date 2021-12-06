@@ -11,4 +11,4 @@ fish_generations = pd.Series(
 T = np.roll(np.identity(9, dtype=int), -1, axis=0)
 T[6, 0] = 1
 P = np.linalg.matrix_power(T, 256)
-print(P.dot(fish_generations).sum().sum())
+print(P.dot(fish_generations).sum())
