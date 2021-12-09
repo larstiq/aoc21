@@ -30,18 +30,18 @@ with open("input") as puzzle_input:
 
     covered = df.eq(9) | low_mask
     while not covered.all().all():
-        for neighbour in [(-1, 0), (0, -1), (1, 0), (0, 1)]:
+        for direction in [(-1, 0), (0, -1), (1, 0), (0, 1)]:
             for cell in df[~covered].stack().index:
                 for ix in basin_sets:
-                    if (cell[0] + neighbour[0], cell[1] + neighbour[1]) in basin_sets[ix]:
+                    neighbour = (cell[0] + direction[0], cell[1] + direction[1])
+                    if neighbour in basin_sets[ix]:
                         basin_sets[ix].add(cell)
                         covered.loc[cell] = True
 
-    sizes = {
-        ix: len(basin_sets[ix]) for ix in basin_sets
-    }
+    sizes = dict((ix, len(basin_sets[ix])) for ix in basin_sets)
 
     cum = 1
     for size in sorted(sizes.values())[-3:]:
         cum = cum * size
     print(cum)
+    #functools.reduce(operator.mul, sorted(sizes.values())[-3:], 1)
