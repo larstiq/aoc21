@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 import time
-with open("simput") as puzzle_input:
+with open("input") as puzzle_input:
     data = [list(map(int, line.strip())) for line in puzzle_input]
     print(data)
     # TODO: assert wires[10] == '1'
@@ -46,9 +46,9 @@ with open("simput") as puzzle_input:
     
     basins = [pd.DataFrame(index=df.index, columns=df.columns, data=False) for ix in basin_locations]
     for ix, basin in enumerate(basin_locations):
-        print("Basin", ix)
+        #print("Basin", ix)
         basins[ix].loc[basin] = True
-        print(basins[ix])
+        #print(basins[ix])
 
     #print(basins)
 
@@ -58,79 +58,35 @@ with open("simput") as puzzle_input:
         #print(df[semi_low_mask])
         
 
+    basin_sets = {
+        ix: set([l]) for ix, l in enumerate(basin_locations)
+    }
+
     
     covered = df.eq(9) | low_mask
-    breakpoint()
     oops = 0
     while not covered.all().all():
         oops = oops + 1
         if oops > 10:
             break
-        for semi in [(0, 1), (0, -1), (1, 1), (1, -1)]:
-            sh = (~covered).shift(semi[1], axis=semi[0])
-            print(df[sh])
-            for ix, basin in enumerate(basins):
-                found_basin = basin & sh
-                #print(found_basin)
-                basins[ix][found_basin] = True
-                covered = covered | found_basin
-                #print(covered)
+
+        for neighbour in [(-1, 0), (0, -1), (1, 0), (0, 1)]:
+            for cell in df[~covered].stack().index:
+                for ix in basin_sets:
+                    if (cell[0] + neighbour[0], cell[1] + neighbour[1]) in basin_sets[ix]:
+                        #breakpoint()
+                        basin_sets[ix].add(cell)
+                        covered.loc[cell] = True
+                        #print(basin_sets)
 
     
-    breakpoint()
-
-
-    levels = pd.DataFrame(zip(*basin_locations)).T
-    for flood_level in range(1, 2):
-        flood = df[df == flood_level]
-        stacked_flood = flood.stack().dropna()
-        for ix, basin in enumerate(basins):
-            aap = (pd.DataFrame(zip(*stacked_flood.index)).T - levels.loc[0])
-            aap[aap.abs().sum(axis=1) <= 1]
-            print("aap", aap.abs().sum())
-
-
-
-
-    if False:
-        roundf = 0
-        while True:
-
-            stagnants = [False] #* len(basins)
-            roundf = roundf + 1
-            print("Round", roundf)
-            for ix, basin in enumerate(basins):
-                if ix == 0:
-                    breakpoint()
-                obasin = basin.copy()
-
-                growths = []
-                for semi in [(0, 1), (0, -1), (1, 1), (1, -1)]:
-                    #breakpoint()
-
-                    sh = obasin.shift(semi[1], axis=semi[0])
-                    growths.append(df[sh] < 9)
-
-                breakpoint() 
-
-                stagnants[ix] = any(g.any().any() for g in growths)
-                grow = growths[0]
-                for g in growths:
-                    grow = grow | g
-
-                if ix == 0:
-                    print(grow)
-                    breakpoint()
-                basins[ix] = basins[ix] | grow
-            if all(stagnants):
-                break
-
     
+    sizes = {
+        ix: len(basin_sets[ix]) for ix in basin_sets
+    }
     # sizes of basins
     cum = 1
-    for b in basins:
-        size = b.sum().sum()
+    for size in sorted(sizes.values())[-3:]:
         cum = cum * size
-        print(size)
-        print(df[b])
     print(cum)
+
