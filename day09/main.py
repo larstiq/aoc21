@@ -57,41 +57,73 @@ with open("simput") as puzzle_input:
         #                         (df <= df.shift(1, axis=1).fillna(fill_val)) | (df <= df.shift(-1, axis=1).fillna(fill_val)))
         #print(df[semi_low_mask])
         
-    #for flood_level in range(1, 9):
-        #     print(df[df < flood_level])
 
-
-    roundf = 0
-    while True:
-
-        stagnants = [False] #* len(basins)
-        roundf = roundf + 1
-        print("Round", roundf)
-        for ix, basin in enumerate(basins):
-            if ix == 0:
-                breakpoint()
-            obasin = basin.copy()
-
-            growths = []
-            for semi in [(0, 1), (0, -1), (1, 1), (1, -1)]:
-                #breakpoint()
-
-                sh = obasin.shift(semi[1], axis=semi[0])
-                growths.append(df[sh] < 9)
-
-            breakpoint() 
-
-            stagnants[ix] = any(g.any().any() for g in growths)
-            grow = growths[0]
-            for g in growths:
-                grow = grow | g
-
-            if ix == 0:
-                print(grow)
-                breakpoint()
-            basins[ix] = basins[ix] | grow
-        if all(stagnants):
+    
+    covered = df.eq(9) | low_mask
+    breakpoint()
+    oops = 0
+    while not covered.all().all():
+        oops = oops + 1
+        if oops > 10:
             break
+        for semi in [(0, 1), (0, -1), (1, 1), (1, -1)]:
+            sh = (~covered).shift(semi[1], axis=semi[0])
+            print(df[sh])
+            for ix, basin in enumerate(basins):
+                found_basin = basin & sh
+                #print(found_basin)
+                basins[ix][found_basin] = True
+                covered = covered | found_basin
+                #print(covered)
+
+    
+    breakpoint()
+
+
+    levels = pd.DataFrame(zip(*basin_locations)).T
+    for flood_level in range(1, 2):
+        flood = df[df == flood_level]
+        stacked_flood = flood.stack().dropna()
+        for ix, basin in enumerate(basins):
+            aap = (pd.DataFrame(zip(*stacked_flood.index)).T - levels.loc[0])
+            aap[aap.abs().sum(axis=1) <= 1]
+            print("aap", aap.abs().sum())
+
+
+
+
+    if False:
+        roundf = 0
+        while True:
+
+            stagnants = [False] #* len(basins)
+            roundf = roundf + 1
+            print("Round", roundf)
+            for ix, basin in enumerate(basins):
+                if ix == 0:
+                    breakpoint()
+                obasin = basin.copy()
+
+                growths = []
+                for semi in [(0, 1), (0, -1), (1, 1), (1, -1)]:
+                    #breakpoint()
+
+                    sh = obasin.shift(semi[1], axis=semi[0])
+                    growths.append(df[sh] < 9)
+
+                breakpoint() 
+
+                stagnants[ix] = any(g.any().any() for g in growths)
+                grow = growths[0]
+                for g in growths:
+                    grow = grow | g
+
+                if ix == 0:
+                    print(grow)
+                    breakpoint()
+                basins[ix] = basins[ix] | grow
+            if all(stagnants):
+                break
 
     
     # sizes of basins
