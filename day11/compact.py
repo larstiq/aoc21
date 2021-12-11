@@ -3,7 +3,6 @@
 import pandas as pd
 import numpy as np
 import time
-from scipy.ndimage.measurements import label, morphology
 from scipy.signal import convolve
 
 # When an octopus flashes it charges all of its neighbours by one
@@ -44,6 +43,7 @@ with open("input") as puzzle_input:
 
         if step == 100:
             print("Flashes", flashes)
+
         synchronized = flashed.all().all()
         if synchronized:
             print("Synchronized at step", step)
