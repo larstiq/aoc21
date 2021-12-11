@@ -30,7 +30,9 @@ with open("input") as puzzle_input:
 
     debug = False
     flashes = 0
-    for step in range(1, 101):
+    dancing = False
+    step = 1
+    while not dancing:
         flashed = np.zeros_like(octopi, dtype=bool)
         octopi = octopi + 1
         charged = octopi > 9
@@ -70,3 +72,5 @@ with open("input") as puzzle_input:
         print("Flashes", flashes)
         show_octopi(f"End of step {step}", octopi)
         print('-' * 80)
+        step = step + 1
+        dancing = flashed.all().all()
