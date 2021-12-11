@@ -28,12 +28,14 @@ with open("input") as puzzle_input:
     data = [list(map(int, line.strip())) for line in puzzle_input]
     octopi = pd.DataFrame(data=data)
 
+    step = 0
     flashes = 0
     synchronized = False
-    step = 0
     while not synchronized:
         step = step + 1
         flashed = np.zeros_like(octopi, dtype=bool)
+
+        # All the octopi charge up their flashlights
         octopi = octopi + 1
         charged = octopi > 9
 
@@ -51,9 +53,11 @@ with open("input") as puzzle_input:
             flashed = flashed | charged
             charged = (octopi > 9) & ~flashed
 
+        # After flashing the charge level starts at zero
         octopi[flashed] = 0
 
         flashes = flashes + flashed.sum().sum()
+
         if step == 100:
             print("Flashes", flashes)
         synchronized = flashed.all().all()
