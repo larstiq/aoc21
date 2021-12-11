@@ -7,9 +7,9 @@ from scipy.signal import convolve
 
 # When an octopus flashes it charges all of its neighbours by one
 flash_struc = np.array([
-        [1, 1, 1],
-        [1, 0, 1],
-        [1, 1, 1]], dtype=bool)
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1]], dtype=bool)
 
 with open("input") as puzzle_input:
     data = [list(map(int, line.strip())) for line in puzzle_input]
@@ -20,15 +20,13 @@ with open("input") as puzzle_input:
     synchronized = False
     while not synchronized:
         step = step + 1
-        flashed = np.zeros_like(octopi, dtype=bool)
 
         # All the octopi charge up their flashlights
         octopi = octopi + 1
-        charged = octopi > 9
-
+        flashed = charged = octopi > 9
         while charged.any().any():
             weighted_neighours_of_flashes = convolve(
-                charged.astype(int), flash_struc, mode='same'
+                charged.astype(int), flash_struc, mode="same"
             )
 
             octopi = octopi + weighted_neighours_of_flashes
