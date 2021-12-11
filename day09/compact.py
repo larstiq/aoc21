@@ -13,7 +13,10 @@ with open("input") as puzzle_input:
     df = pd.DataFrame(data=data)
 
     mountain_height = df.max().max()
-    neighbourhood = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=bool)
+    neighbourhood = np.array([
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0]], dtype=bool)
     lowest_neighbours = grey_erosion(
         df, footprint=neighbourhood, mode="constant", cval=mountain_height + 1
     )
