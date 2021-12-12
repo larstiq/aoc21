@@ -12,17 +12,24 @@ def to_graph(text):
     G = nx.from_edgelist(data, create_using=nx.MultiGraph)
     return G
 
-def rec_visit(G, path, visited):
+def rec_visit(G, path, max_small_visit=1, max_small_visited=0):
     current = path[-1]
     paths = []
     for neighbour in G[current]:
         if neighbour == 'end':
             subpaths = [path + [neighbour]]
-        elif neighbour not in visited:
-            subpaths = rec_visit(G, path + [neighbour], visited | {neighbour})
+        elif neighbour == 'start':
+            subpaths = []
         elif neighbour.upper() == neighbour and current != neighbour:
             # TODO: cycles?
-            subpaths = rec_visit(G, path + [neighbour], visited)
+            subpaths = rec_visit(G, path + [neighbour], max_small_visit, max_small_visited)
+        elif neighbour.lower() == neighbour:
+            if neighbour not in path:
+                subpaths = rec_visit(G, path + [neighbour], max_small_visit, max_small_visited)
+            elif max_small_visited < max_small_visit:
+                subpaths = rec_visit(G, path + [neighbour], max_small_visit, max_small_visited + 1)
+            else:
+                subpaths = []
         else:
             subpaths = []
 
@@ -30,6 +37,15 @@ def rec_visit(G, path, visited):
 
     return paths
 
+
+smallin = """start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end"""
+small_graph = to_graph(smallin.split("\n"))
 
 smallout = """start,A,b,A,c,A,end
 start,A,b,A,end
@@ -43,6 +59,8 @@ start,b,A,end
 start,b,end"""
 
 smallout_paths = [line.strip().split(",") for line in smallout.split("\n")] 
+#assert set(tuple(l) for l in rec_visit(small_graph, ['start'])) == set(tuple(l) for l in smallout_paths)
+
 
 
 midin = """dc-end
@@ -80,7 +98,7 @@ start,kj,dc,end"""
 
 mid_paths = [line.strip().split(",") for line in midout.split("\n")]
 
-assert set(tuple(l) for l in rec_visit(mid_graph, ['start'], {'start'})) == set(tuple(l) for l in mid_paths)
+#assert set(tuple(l) for l in rec_visit(mid_graph, ['start'], {'start'})) == set(tuple(l) for l in mid_paths)
 
 
 bigin = """fs-end
@@ -102,12 +120,15 @@ zg-he
 pj-fs
 start-RW"""
 big_graph = to_graph(bigin.split("\n"))
-big_result = rec_visit(big_graph, ['start'], {'start'})
+big_result = rec_visit(big_graph, ['start'])
 
 
 with open("input") as puzzle_input:
     #data = pd.read_csv(puzzle_input, sep=0, header=None)
     G = to_graph([line for line in puzzle_input])
-    aa = rec_visit(G, ['start'], {'start'})
-    print(aa)
-    assert set(tuple(l) for l in aa) == set(tuple(l) for l in smallout_paths)
+    aa = rec_visit(G, ['start'])
+    print(len(aa))
+    bb = rec_visit(G, ['start'], 2)
+    print(len(bb))
+
+    #assert set(tuple(l) for l in aa) == set(tuple(l) for l in smallout_paths)
