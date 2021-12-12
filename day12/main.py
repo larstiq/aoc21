@@ -42,7 +42,7 @@ start,b,A,c,A,end
 start,b,A,end
 start,b,end"""
 
-smallout_paths = [line.strip().split(",") for line in testtxt.split("\n")] 
+smallout_paths = [line.strip().split(",") for line in smallout.split("\n")] 
 
 
 midin = """dc-end
@@ -105,11 +105,9 @@ big_graph = to_graph(bigin.split("\n"))
 big_result = rec_visit(big_graph, ['start'], {'start'})
 
 
-with open("simput") as puzzle_input:
+with open("input") as puzzle_input:
     #data = pd.read_csv(puzzle_input, sep=0, header=None)
     G = to_graph([line for line in puzzle_input])
     aa = rec_visit(G, ['start'], {'start'})
     print(aa)
     assert set(tuple(l) for l in aa) == set(tuple(l) for l in smallout_paths)
-
-
