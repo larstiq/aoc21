@@ -5,12 +5,14 @@ import numpy as np
 
 
 def display(shape):
+    pd.set_option('display.max_colwidth', None)
     output = pd.DataFrame(data=shape)
-    output[shape == False] = "."
+    output = pd.DataFrame(index=output.index, columns=output.columns, data=".")
+    output[shape == False] = " "
     output[shape == True] = "#"
-    print(output.T)
+    print(output)
 
-with open("simput") as puzzle_input:
+with open("input") as puzzle_input:
     x_coords = []
     y_coords = []
     folds = []
@@ -56,7 +58,7 @@ with open("simput") as puzzle_input:
             df = half1 | np.flip(half2, axis=0)
             print(df.shape)
         else:
-            breakpoint()
+            #breakpoint()
             fold_x = int(fold[1])
             half1 = df[:, :fold_x]
             half2 = df[:, fold_x + 1:]
