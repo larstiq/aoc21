@@ -7,7 +7,7 @@ from collections import Counter
 
 
 pairs = {}
-with open("simput") as puzzle_input:
+with open("input") as puzzle_input:
     polymer = list(puzzle_input.readline().strip())
     puzzle_input.readline()
     for line in puzzle_input:
@@ -17,18 +17,20 @@ with open("simput") as puzzle_input:
     print(pairs)
     for step in range(10):
         new_polymer = []
-        for pair in itertools.pairwise(polymer):
-            extras.append(pairs[pair])
+        for ix, char in enumerate(polymer):
+            new_polymer.append(char)
+            try:
+                new_polymer.append(pairs[(char, polymer[ix + 1])])
+            except:
+                pass
 
-        print(f"{extras=}")
-        print(f"{polymer=}")
-
-        polymer = list(itertools.chain(*zip(polymer, extras)))
-        print(f"{polymer=}")
-        print(polymer)
+        polymer = new_polymer
         print(len(polymer))
 
-    print(Counter(polymer))
+    count = Counter(polymer)
+    print(count)
+    print(count.most_common()[0][1] - count.most_common()[-1][1])
+
     
 
 def with_counter():
