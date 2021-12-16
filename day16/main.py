@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import networkx as nx
+
 
 def hex2bin(hexchar):
     mapping = {
@@ -23,57 +25,82 @@ def hex2bin(hexchar):
     return mapping[hexchar]
 
 
-def parse_message(bits, total_length=None, number_of_packets=None):
-    if bits == '':
-        breakpoint()
-    index = 6
+def parse_message(bits, tree, parent=None, number_of_packets=None):
+    print("Parsing message of length", len(bits))
+    index = 0
 
 
     exhausted = False
+    parsed_packets = 0
     while not exhausted:
-        version = int(bits[:3], 2)
-        typeID = bits[3:6]
+        version = int(bits[index:index + 3], 2)
+        typeID = bits[index + 3:index + 6]
+        index += 6
 
         if typeID == "100":
+            print("literal starting at", index)
             more = True
             literal = ""
             while more:
                 nibble = bits[index:index + 5]
+                if len(nibble) != 5:
+                    print("NEEEE")
+                    #breakpoint()
                 if nibble[0] == '0':
+                    #breakpoint()
                     more = False
                 index += len(nibble)
                 literal += nibble[1:]
                 print(int(literal, 2), nibble, more)
-            packet = (version, typeID, literal)
-            subpackets = []
+                print(bits)
+                print(bits[:index])
+            packet = (version, typeID, "literal", int(literal, 2))
+
+            tree.add_node(packet)
+            if parent:
+                tree.add_edge(parent, packet)
+            else:
+                return
         else:
             # operator
             length_typeID = bits[index:index + 1]
             index += 1
 
             if length_typeID == "0":
-                arg = int(bits[index:index + 15], 2)
+                total_length = int(bits[index:index + 15], 2)
                 index += 15
-                packet = (version, "operator", typeID, "length", arg)
-                breakpoint()
-                subpackets = parse_message(bits[index:], total_length=arg)
+                packet = (version, "operator", typeID, "length", total_length)
+
+                tree.add_node(packet)
+
+                #breakpoint()
+                parse_message(bits[index:index + total_length], tree, packet)
+                if parent:
+                    tree.add_edge(parent, packet)
+                else:
+                    return
             elif length_typeID == "1":
                 arg = int(bits[index:index + 11], 2)
                 index += 11
                 packet = (version, "operator", typeID, "number", arg)
-                breakpoint()
-                subpackets = parse_message(bits[index:], number_of_packets=arg)
+
+                tree.add_node(packet)
+                #breakpoint()
+                parse_message(bits[index:], tree, packet, number_of_packets=arg)
+
+                if parent:
+                    tree.add_edge(parent, packet)
+                else:
+                    return
             else:
                 breakpoint()
 
+            parsed_packets += 1
+
         if (index >= len(bits) or
-           (total_length is not None and total_length < index) or
-           (number_of_packets is not None and number_of_packets < len(subpackets))):
+           (number_of_packets is not None and number_of_packets < parsed_packets)):
             exhausted = True
 
-
-
-    return [packet] + subpackets
 
 
 
@@ -82,6 +109,11 @@ with open("input") as puzzle_input:
     message = puzzle_input.read().strip()
     message = "D2FE28"
     message = "38006F45291200"
+    message = "EE00D40C823060"
+    message = "8A004A801A8002F478"
+    message = "620080001611562C8802118E34"
+    message = "C0015000016115A2E0802F182340"
+    message = "A0016C880162017C3686B18A3D4780"
 
     bits_list = []
     for hexchar in message:
@@ -90,5 +122,7 @@ with open("input") as puzzle_input:
     bits = "".join(bits_list)
 
 
-    result = parse_message(bits)
+    tree = nx.DiGraph()
+    result = parse_message(bits, tree)
+    print(tree.nodes, sum(n[0] for n in tree.nodes))
     
