@@ -57,11 +57,14 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
                 #print(bits)
                 #print(bits[:index])
             packet = (version, packet_start, typeID, "literal", int(literal, 2))
+            if int(literal, 2) == 15:
+                breakpoint()
             tree.add_node(packet)
+            parsed_packets += 1
             if parent:
                 tree.add_edge(parent, packet)
             else:
-                return index
+                return index, parsed_packets
         else:
             # operator
             length_typeID = bits[index:index + 1]
@@ -75,14 +78,15 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
                 tree.add_node(packet)
 
                 #breakpoint()
-                advanced = parse_message(bits, index, tree, packet, max_index=index + total_length)
+                advanced, parsed_subpackets = parse_message(bits, index, tree, packet, max_index=index + total_length)
                 index += total_length
                 assert index == advanced
+                parsed_packets += 1 + parsed_subpackets
 
                 if parent:
                     tree.add_edge(parent, packet)
                 else:
-                    return index
+                    return index, parsed_packets
             elif length_typeID == "1":
                 arg = int(bits[index:index + 11], 2)
                 index += 11
@@ -90,27 +94,28 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
 
                 tree.add_node(packet)
                 #breakpoint()
-                advanced = parse_message(bits, index, tree, packet, number_of_packets=arg)
+                advanced, parsed_subpackets = parse_message(bits, index, tree, packet, number_of_packets=arg)
+                index = advanced
+                parsed_packets += 1 + parsed_subpackets
 
                 if parent:
                     tree.add_edge(parent, packet)
                 else:
-                    return advanced
+                    return advanced, parsed_packets
             else:
                 # Bits have run out, why?
-                #breakpoint()
-                return index
+                breakpoint()
+                return index, parsed_packets
 
-            parsed_packets += 1
 
 
         if (index >= len(bits) or
-            (number_of_packets is not None and number_of_packets < parsed_packets) or
+            (number_of_packets is not None and number_of_packets >= parsed_packets) or
             (max_index is not None and index >= max_index)
            ):
             exhausted = True
 
-    return index
+    return index, parsed_packets
 
 
 def go(message):
