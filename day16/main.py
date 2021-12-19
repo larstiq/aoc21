@@ -38,33 +38,16 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
         index += 6
 
         if typeID == "100":
-            print("literal starting at", index)
-            #if index == 108:
-                #    breakpoint()
             more = True
             literal = ""
             while more:
                 nibble = bits[index:index + 5]
-                if len(nibble) != 5:
-                    print("NEEEE")
-                    #breakpoint()
                 if nibble[0] == '0':
-                    #breakpoint()
                     more = False
                 index += len(nibble)
                 literal += nibble[1:]
-                #print(int(literal, 2), nibble, more)
-                #print(bits)
-                #print(bits[:index])
             packet = (version, packet_start, typeID, "literal", int(literal, 2))
-            if int(literal, 2) == 15:
-                breakpoint()
             tree.add_node(packet)
-            parsed_packets += 1
-            if parent:
-                tree.add_edge(parent, packet)
-            else:
-                return index, parsed_packets
         else:
             # operator
             length_typeID = bits[index:index + 1]
@@ -77,37 +60,26 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
 
                 tree.add_node(packet)
 
-                #breakpoint()
-                advanced, parsed_subpackets = parse_message(bits, index, tree, packet, max_index=index + total_length)
+                advanced, _ = parse_message(bits, index, tree, packet, max_index=index + total_length)
+                breakpoint()
                 index += total_length
                 assert index == advanced
-                parsed_packets += 1 + parsed_subpackets
-
-                if parent:
-                    tree.add_edge(parent, packet)
-                else:
-                    return index, parsed_packets
             elif length_typeID == "1":
                 arg = int(bits[index:index + 11], 2)
                 index += 11
                 packet = (version, packet_start, "operator", typeID, "number", arg)
 
                 tree.add_node(packet)
-                #breakpoint()
-                advanced, parsed_subpackets = parse_message(bits, index, tree, packet, number_of_packets=arg)
+                advanced,_ = parse_message(bits, index, tree, packet, number_of_packets=arg)
                 index = advanced
-                parsed_packets += 1 + parsed_subpackets
-
-                if parent:
-                    tree.add_edge(parent, packet)
-                else:
-                    return advanced, parsed_packets
             else:
                 # Bits have run out, why?
                 breakpoint()
                 return index, parsed_packets
 
-
+        parsed_packets += 1 + len(nx.algorithms.dag.descendants(tree, packet))
+        if parent:
+            tree.add_edge(parent, packet)
 
         if (index >= len(bits) or
             (number_of_packets is not None and number_of_packets >= parsed_packets) or
