@@ -25,7 +25,7 @@ def hex2bin(hexchar):
     return mapping[hexchar]
 
 
-def parse_message(bits, index, tree, parent=None, number_of_packets=None):
+def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_index=None):
     #print("Parsing message of length", len(bits))
 
 
@@ -75,8 +75,9 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None):
                 tree.add_node(packet)
 
                 #breakpoint()
-                advanced = parse_message(bits, index, tree, packet)
+                advanced = parse_message(bits, index, tree, packet, max_index=index + total_length)
                 index += total_length
+                assert index == advanced
 
                 if parent:
                     tree.add_edge(parent, packet)
@@ -102,11 +103,14 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None):
 
             parsed_packets += 1
 
+
         if (index >= len(bits) or
-           (number_of_packets is not None and number_of_packets < parsed_packets)):
+            (number_of_packets is not None and number_of_packets < parsed_packets) or
+            (max_index is not None and index >= max_index)
+           ):
             exhausted = True
 
-        return index
+    return index
 
 
 def go(message):
@@ -121,15 +125,15 @@ def go(message):
     result = parse_message(bits, 0, tree)
     print(tree.nodes, sum(n[0] for n in tree.nodes))
 
-    return tree.nodes
+    return list(tree.nodes)
 
 
 with open("input") as puzzle_input:
 
-    assert [(6, 0, '100', 'literal', 2021)] == list(go("D2FE28"))
-    assert [(1, 0, 'operator', '110', 'length', 27), (6, 22, '100', 'literal', 10)] == list(go("38006F45291200"))
-    assert [(7, 0, 'operator', '011', 'number', 3), (2, 18, '100', 'literal', 1)] == list(go("EE00D40C823060"))
-    assert [(4, 0, 'operator', '010', 'number', 1), (1, 18, 'operator', '010', 'number', 1), (5, 36, 'operator', '010', 'length', 11), (6, 58, '100', 'literal', 15)] == list(go("8A004A801A8002F478"))
+    assert [(6, 0, '100', 'literal', 2021)] == go("D2FE28")
+    assert [(1, 0, 'operator', '110', 'length', 27), (6, 22, '100', 'literal', 10), (2, 33, '100', 'literal', 20)] == go("38006F45291200")
+    assert [(7, 0, 'operator', '011', 'number', 3), (2, 18, '100', 'literal', 1)] == go("EE00D40C823060")
+    assert [(4, 0, 'operator', '010', 'number', 1), (1, 18, 'operator', '010', 'number', 1), (5, 36, 'operator', '010', 'length', 11), (6, 58, '100', 'literal', 15)] == go("8A004A801A8002F478")
     assert [] == list(go("620080001611562C8802118E34"))
     assert [] == list(go("C0015000016115A2E0802F182340"))
     assert [] == list(go("A0016C880162017C3686B18A3D4780"))
