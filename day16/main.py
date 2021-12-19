@@ -109,19 +109,7 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None):
         return index
 
 
-
-
-with open("input") as puzzle_input:
-
-    message = "D2FE28"
-    message = "38006F45291200"
-    message = "EE00D40C823060"
-    message = "8A004A801A8002F478"
-    message = "620080001611562C8802118E34"
-    message = "C0015000016115A2E0802F182340"
-    message = "A0016C880162017C3686B18A3D4780"
-    message = puzzle_input.read().strip()
-
+def go(message):
     bits_list = []
     for hexchar in message:
         bits_list.extend(hex2bin(hexchar))
@@ -132,4 +120,18 @@ with open("input") as puzzle_input:
     tree = nx.DiGraph()
     result = parse_message(bits, 0, tree)
     print(tree.nodes, sum(n[0] for n in tree.nodes))
+
+    return tree.nodes
+
+
+with open("input") as puzzle_input:
+
+    assert [(6, 0, '100', 'literal', 2021)] == list(go("D2FE28"))
+    assert [(1, 0, 'operator', '110', 'length', 27), (6, 22, '100', 'literal', 10)] == list(go("38006F45291200"))
+    assert [(7, 0, 'operator', '011', 'number', 3), (2, 18, '100', 'literal', 1)] == list(go("EE00D40C823060"))
+    assert [(4, 0, 'operator', '010', 'number', 1), (1, 18, 'operator', '010', 'number', 1), (5, 36, 'operator', '010', 'length', 11), (6, 58, '100', 'literal', 15)] == list(go("8A004A801A8002F478"))
+    assert [] == list(go("620080001611562C8802118E34"))
+    assert [] == list(go("C0015000016115A2E0802F182340"))
+    assert [] == list(go("A0016C880162017C3686B18A3D4780"))
+    assert [] == list(go(puzzle_input.read().strip()))
     
