@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 from scipy.signal import convolve
+from scipy.ndimage import correlate, median_filter
 
 # When an octopus flashes it charges all of its neighbours by one
 flash_struc = np.array([
@@ -11,7 +12,7 @@ flash_struc = np.array([
     [1, 0, 1],
     [1, 1, 1]], dtype=bool)
 
-with open("input") as puzzle_input:
+with open("corneel") as puzzle_input:
     data = [list(map(int, line.strip())) for line in puzzle_input]
     octopi = pd.DataFrame(data=data)
 
@@ -28,6 +29,8 @@ with open("input") as puzzle_input:
             weighted_neighours_of_flashes = convolve(
                 charged.astype(int), flash_struc, mode="same"
             )
+            assert (weighted_neighours_of_flashes - correlate(charged.astype(int), flash_struc, mode="constant", cval=0)).sum().sum() == 0
+            #breakpoint()
 
             octopi = octopi + weighted_neighours_of_flashes
             flashed = flashed | charged

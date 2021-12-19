@@ -24,7 +24,7 @@ def show_octopi(greeting, friends):
     print()
 
 
-with open("simput") as puzzle_input:
+with open("corneel") as puzzle_input:
     data = [list(map(int, line.strip())) for line in puzzle_input]
     octopi = pd.DataFrame(data=data)
 
@@ -70,6 +70,3 @@ with open("simput") as puzzle_input:
         synchronized = flashed.all().all()
         if synchronized:
             print("Synchronized at step", step)
-
-        if step > 3:
-            break
