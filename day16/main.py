@@ -34,6 +34,7 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
     while not exhausted:
         packet_start = index
         version = int(bits[index:index + 3], 2)
+
         typeID = bits[index + 3:index + 6]
         index += 6
 
@@ -60,8 +61,7 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
 
                 tree.add_node(packet)
 
-                advanced, _ = parse_message(bits, index, tree, packet, max_index=index + total_length)
-                breakpoint()
+                advanced, _ = parse_message(bits[:index + total_length], index, tree, packet, max_index=index + total_length)
                 index += total_length
                 assert index == advanced
             elif length_typeID == "1":
@@ -73,11 +73,12 @@ def parse_message(bits, index, tree, parent=None, number_of_packets=None, max_in
                 advanced,_ = parse_message(bits, index, tree, packet, number_of_packets=arg)
                 index = advanced
             else:
-                # Bits have run out, why?
                 breakpoint()
                 return index, parsed_packets
 
-        parsed_packets += 1 + len(nx.algorithms.dag.descendants(tree, packet))
+
+        #parsed_packets += 1 + len(nx.algorithms.dag.descendants(tree, packet))
+        parsed_packets += 1 #+ len(nx.algorithms.dag.descendants(tree, packet))
         if parent:
             tree.add_edge(parent, packet)
 
@@ -99,7 +100,7 @@ def go(message):
 
 
     tree = nx.DiGraph()
-    result = parse_message(bits, 0, tree)
+    result = parse_message(bits, 0, tree, number_of_packets=1)
 
     version_sum = sum(n[0] for n in tree.nodes)
 
@@ -135,6 +136,15 @@ with open("input") as puzzle_input:
             (7, 84, '100', 'literal', 12),
             (0, 95, '100', 'literal', 13)], 23 == go("C0015000016115A2E0802F182340")
 
-    assert [], 31 == go("A0016C880162017C3686B18A3D4780")
-    assert [] == go(puzzle_input.read().strip())
+    assert [(5, 0, 'operator', '000', 'length', 91),
+            (1, 22, 'operator', '000', 'number', 1),
+            (3, 40, 'operator', '000', 'number', 5),
+            (7, 58, '100', 'literal', 6),
+            (6, 69, '100', 'literal', 6),
+            (5, 80, '100', 'literal', 12),
+            (2, 91, '100', 'literal', 15),
+            (2, 102, '100', 'literal', 15)], 31 == go("A0016C880162017C3686B18A3D4780")
+
+
+    assert 917 == go(puzzle_input.read().strip())[1]
     
